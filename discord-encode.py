@@ -56,7 +56,12 @@ for arg in sys.argv[1:]:
 			original_args[arg_key] = None
 			arg_key = None
 		else:
-			original_args[arg_key] = arg
+			if arg_key in original_args:
+				if not isinstance(original_args[arg_key], list):
+					original_args[arg_key] = [original_args[arg_key]]
+				original_args[arg_key].append(arg)
+			else:
+				original_args[arg_key] = arg
 			arg_key = None
 			continue
 	
