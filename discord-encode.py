@@ -165,16 +165,13 @@ for ind in range(len(files)):
 	# Determine if we need to re-encode audio and at what bitrate
 	reencode_audio = False
 	audio_bitrate = 128
-	
-	if "-ss" in args:
-		reencode_audio = True
-	
-	if "-an" in args:
-		audio_bitrate = 0
+	has_audio = False
 	
 	# Check current audio stream
 	for stream in info["streams"]:
 		if stream["codec_type"] == "audio":
+			has_audio = True
+			
 			if stream["codec_name"] == "aac":
 				if "bit_rate" in stream:
 					audio_bitrate_found = float(stream["bit_rate"])
@@ -187,6 +184,12 @@ for ind in range(len(files)):
 			else:
 				reencode_audio = True
 			break
+	
+	if "-ss" in args:
+		reencode_audio = True
+	
+	if "-an" in args:
+		has_audio = False
 	
 	# Make sure we use less than 15% of the total file size for audio
 	max_audio_bitrate = target_size * 0.15 / duration
@@ -211,7 +214,8 @@ for ind in range(len(files)):
 	# Determine video bitrate
 	
 	# Subtract away audio size
-	target_size -= audio_bitrate * duration
+	if has_audio:
+		target_size -= audio_bitrate * duration
 	
 	if target_size < 0:
 		print("Video needs to be negative size to fit. Oh no.")
@@ -323,7 +327,7 @@ for ind in range(len(files)):
 		"-ss": "0",
 		"-i": filename,
 		"-map_metadata": "-1",
-		"-map": ["0:v:0", "0:a:0"],
+		"-map": ["0:v:0"],
 		"-c:v": "libx264",
 		"-b:v": str(video_bitrate) + "k",
 		"-preset": "slow",
@@ -337,11 +341,14 @@ for ind in range(len(files)):
 	if limit_fps:
 		pass1_args["-r"] = "60"
 	
-	if reencode_audio:
-		pass2_args["-c:a"] = aac_encoder
-		pass2_args["-b:a"] = str(audio_bitrate) + "k"
-	elif not "-an" in args:
-		pass2_args["-c:a"] = "copy"
+	if has_audio:
+		pass2_args["-map"].append("0:a:0")
+		
+		if reencode_audio:
+			pass2_args["-c:a"] = aac_encoder
+			pass2_args["-b:a"] = str(audio_bitrate) + "k"
+		else:
+			pass2_args["-c:a"] = "copy"
 	
 	pass2_args.update(args)
 	
