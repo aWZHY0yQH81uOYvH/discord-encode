@@ -94,7 +94,7 @@ if "-h" in original_args or len(files) == 0:
 	* If average FPS is > 60, limit to 60
 		- Pass `-keep-fps` to disable this
 	* Uses two-pass ABR to target a known file size
-		- File size is capped by default at 24MB (may be a little off), with a max bit rate of 10Mbit/s
+		- File size is capped by default at 10MB (may be a little off), with a max bit rate of 10Mbit/s
 		- Pass `-size [size in MB]` to override default size; e.g. `-size 100` to get a 100MB file
 	* Metadata is stripped so you don't accidentally doxx yourself (though Discord does strip most metadata itself)
 	* Use `-o [path]` to define an output path
@@ -155,7 +155,7 @@ for ind in range(len(files)):
 	
 	
 	# Determine target file size in kbits
-	target_size = 24000*8
+	target_size = 10000*8
 	if "-size" in args:
 		target_size = float(args["-size"]) * 8000
 		del args["-size"]
